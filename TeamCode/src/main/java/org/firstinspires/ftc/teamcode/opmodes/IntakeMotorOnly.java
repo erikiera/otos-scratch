@@ -29,6 +29,7 @@
 
 package org.firstinspires.ftc.teamcode.opmodes;
 
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
@@ -38,8 +39,8 @@ import com.qualcomm.robotcore.util.ElapsedTime;
  * For intake testing.
  */
 
-@TeleOp(name="Intake", group="Teleop")
-//@Disabled
+@TeleOp(name="Intake Only", group="Calibration")
+@Disabled
 public class IntakeMotorOnly extends OpMode
 {
     /** Declare OpMode members.
