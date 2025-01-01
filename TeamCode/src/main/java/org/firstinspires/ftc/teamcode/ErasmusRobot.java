@@ -19,35 +19,45 @@ import com.acmerobotics.roadrunner.Pose2d;
 public class ErasmusRobot {
     OpMode opMode ;
     public DcMotorEx liftMotor;
-    public DcMotor armMotor;
+    public DcMotorEx armMotor;
     public Servo gripperServo ;
     public DcMotor intakeMotor;
     public Servo intakeServo ;
+    public Servo armServo ;
 
     public MecanumDrive drive ;
 
     // Setpoints =============================================
     // Arm --------------------------------------
     public static int ARM_TARGET = 0 ;
-    public static int ARM_MATCH_START = 5000;
+    public static int ARM_MATCH_START = 1300;
     public static int ARM_FLOOR = 10;
-    public static int ARM_NET = 2200 ;  //almost straight up
-    public static int ARM_CLIP = 5800;
-    public static int ARM_INTAKE = 5000 ;
-    public static int ARM_HP = 5000;
+    public static int ARM_NET = 1000 ;  //almost straight up
+    public static int ARM_CLIP = 1200;
+    public static int ARM_INTAKE = 1300 ;
+    public static int ARM_HP = 1300;
     public static int ARM_CLIP_INTAKE = -470 ;
-    public static int ARM_L1_ASCENSION = 5000;
+    public static int ARM_L1_ASCENSION = 1200;
+    public static double ARM_P_COEFFICIENT = 7 ;
     public int armOffset = 0 ;
+
+    public static double ARM_SERVO_POSITION = 0.5 ;
+    public static double ARM_SERVO_FLOOR = 0.08 ;
+    public static double ARM_SERVO_NET = 0.55 ;
+    public static double ARM_SERVO_CLIP = 0.6 ;
+    public static double ARM_SERVO_MATCHSTART = 0.6 ;
+    public static double ARM_SERVO_INTAKE = 0.7 ;
     // Lift ---------------------------------------
     public static int LIFT_TARGET = 0 ;
     public static int LIFT_START = 0 ; //not used
     public static int LIFT_FLOOR = 0;
-    public static int LIFT_NET = 2200 ;   // 43 in high
-    public static int LIFT_CLIP = 1100 ;  // 26 in high
+    public static int LIFT_NET = 2800 ;   // 43 in high
+    public static int LIFT_CLIP = 2900 ;  // 26 in high
     public static int LIFT_CLIPPED = 900;
     public static int LIFT_INTAKE = 500 ;
     public static int LIFT_SUBMERSIBLE = 425 ;
     public static int LIFT_CLIP_INTAKE = 380 ;
+    public static double LIFT_P_COEFFICIENT = 8 ;
     // Gripper -----------------------------------
     public static double GRIPPER_TARGET = 0.5 ;
     public static double GRIPPER_OPEN = 0.8 ;
@@ -70,18 +80,23 @@ public class ErasmusRobot {
 
     public ErasmusRobot(OpMode newOpMode, Pose2d startPose) {
         opMode = newOpMode ;
-        drive = new MecanumDrive(opMode.hardwareMap, startPose) ;
+        drive = new SparkFunOTOSDrive(opMode.hardwareMap, startPose) ;
         // Instantiate arm --------------------------------------------
-        armMotor = opMode.hardwareMap.get(DcMotor.class, "armMotor");
+        armMotor = opMode.hardwareMap.get(DcMotorEx.class, "armMotor");
         armMotor.setDirection(DcMotorSimple.Direction.REVERSE);
+        armMotor.setPositionPIDFCoefficients(ARM_P_COEFFICIENT);
         armMotor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         armMotor.setTargetPosition(0);
         armMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
         armMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         armMotor.setPower(.9);
+
+        armServo = opMode.hardwareMap.get(Servo.class, "armServo");
+
         // Instantiate lift --------------------------------------------
         liftMotor = opMode.hardwareMap.get(DcMotorEx.class, "liftMotor");
         liftMotor.setDirection(DcMotorSimple.Direction.REVERSE);
+        liftMotor.setPositionPIDFCoefficients(LIFT_P_COEFFICIENT);
         liftMotor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         liftMotor.setTargetPosition(0);
         liftMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
@@ -96,7 +111,7 @@ public class ErasmusRobot {
         intakeServo = opMode.hardwareMap.get(Servo.class, "intakeServo");
         intakeServo.setPosition(INTAKE_RETRACT);
         intakeMotor = opMode.hardwareMap.get(DcMotor.class, "intakeMotor");
-        intakeMotor.setDirection(DcMotorSimple.Direction.REVERSE);
+        intakeMotor.setDirection(DcMotorSimple.Direction.FORWARD);
         intakeMotor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
         // Instantiate actions -----------------------------------------
 
@@ -116,21 +131,35 @@ public class ErasmusRobot {
 
     public Action goToNetPosition() {
         return new SequentialAction(
-                new GripperAction(true),
-                new LiftArmAction(LIFT_NET, ARM_NET+armOffset) ) ;
+                new GripperAction(false),
+//                new LiftArmAction(LIFT_NET, ARM_NET+armOffset) ) ;
+                new LiftArmAction(LIFT_NET, ARM_SERVO_NET) ) ;
     }
     public Action goToFloorPosition() {
         return new SequentialAction(
                 new GripperAction(true),
-                new LiftArmAction(LIFT_FLOOR, ARM_FLOOR + armOffset));
+//                new LiftArmAction(LIFT_FLOOR, ARM_FLOOR + armOffset));
+                new LiftArmAction(LIFT_FLOOR, ARM_SERVO_FLOOR));
     }
     public Action goToClipPosition() {
         return new SequentialAction(
                 new GripperAction(false),
-                new LiftArmAction(LIFT_CLIP, ARM_CLIP + armOffset));
+//                new LiftArmAction(LIFT_CLIP, ARM_CLIP + armOffset));
+                new LiftArmAction(LIFT_CLIP, ARM_SERVO_CLIP));
     }
 
-
+    public void intakeDeploy(){
+        intakeMotor.setPower(1);
+        intakeServo.setPosition(INTAKE_EXTEND);
+    }
+    public void intakeRetract(){
+        intakeMotor.setPower(0);
+        intakeServo.setPosition(INTAKE_RETRACT);
+    }
+    public void intakeRelease(){
+        intakeServo.setPosition(INTAKE_RELEASE);
+        intakeMotor.setPower(-1);
+    }
 
     public void setPayloadAll(int newLiftPosition, int newArmPosition, boolean newGripperOpen) {
         liftMotor.setTargetPosition(newLiftPosition);
@@ -200,18 +229,24 @@ public class ErasmusRobot {
         private boolean started = false ;
         int liftTarget ;
         int armTarget ;
+        double armServoTarget ;
         double startTime ;
         public LiftArmAction(int newLiftTarget, int newArmTarget) {
             startTime = opMode.getRuntime() ;
             liftTarget = newLiftTarget ;
             armTarget = newArmTarget ;
         }
+        public LiftArmAction(int newLiftTarget, double newArmTarget) {
+            this(newLiftTarget, 0) ;
+            armServoTarget = newArmTarget ;
+        }
         @Override
         public boolean run(@NonNull TelemetryPacket telemetryPacket) {
             if (!started) {
                 started = true ;
                 liftMotor.setTargetPosition(liftTarget);
-                armMotor.setTargetPosition(armTarget+armOffset);
+                //armMotor.setTargetPosition(armTarget+armOffset);
+                armServo.setPosition(armServoTarget);
                 return true ;
             }
             else if (Math.abs(liftTarget-liftMotor.getCurrentPosition()) < 40 &&

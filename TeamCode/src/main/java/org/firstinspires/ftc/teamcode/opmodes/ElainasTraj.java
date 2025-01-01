@@ -1,11 +1,13 @@
 package org.firstinspires.ftc.teamcode.opmodes;
 
 import com.acmerobotics.roadrunner.Pose2d;
+import com.acmerobotics.roadrunner.SequentialAction;
 import com.acmerobotics.roadrunner.Vector2d;
 import com.acmerobotics.roadrunner.ftc.Actions;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 
+import org.firstinspires.ftc.teamcode.ErasmusRobot;
 import org.firstinspires.ftc.teamcode.SparkFunOTOSDrive;
 import org.firstinspires.ftc.teamcode.tuning.TuningOpModes;
 
@@ -17,11 +19,13 @@ public final class ElainasTraj extends LinearOpMode {
         if (TuningOpModes.DRIVE_CLASS.equals(SparkFunOTOSDrive.class)) {
             //MecanumDrive drive = new MecanumDrive(hardwareMap, beginPose);
             SparkFunOTOSDrive drive = new SparkFunOTOSDrive(hardwareMap, new Pose2d(-12, -62, Math.toRadians(90)));
+            ErasmusRobot robot = new ErasmusRobot(this) ;
 
             waitForStart();
 
             Actions.runBlocking(
-                drive.actionBuilder(beginPose)
+                    
+                    drive.actionBuilder(beginPose)
                         .splineTo(new Vector2d(-12, -30), Math.toRadians(90))  //place specimen 1
                         .setReversed(true)
                         .splineTo(new Vector2d(-12, -50), Math.toRadians(-90))  // back up

@@ -18,12 +18,12 @@ import org.firstinspires.ftc.teamcode.ErasmusRobot;
 import java.util.Objects;
 
 @Config
-@TeleOp(name="CompetitionEx Teleop", group="Teleop")
-public class CompetitionExTeleOp extends LinearOpMode {
+@TeleOp(name="Mentor Teleop", group="Teleop")
+public class MentorTeleop extends LinearOpMode {
     // Declare objects and variables
     ErasmusRobot robot ;
     public static double SPEEDMULTIPLE = 0.8 ;
-    public static double TURNMULTIPLE = 0.03;
+    public static double TURNMULTIPLE = 0.5 ;
 
 
     @Override
@@ -62,14 +62,15 @@ public class CompetitionExTeleOp extends LinearOpMode {
             if (gamepadEx1.wasJustPressed(GamepadKeys.Button.DPAD_RIGHT)) currentAction = robot.goToClipPosition();
             //if (gamepadEx1.wasJustPressed(GamepadKeys.Button.DPAD_LEFT)) robot.clipReset();
             if (gamepadEx1.wasJustPressed(GamepadKeys.Button.X)) robot.toggleGripper();
-//            if (gamepadEx1.wasJustPressed(GamepadKeys.Button.RIGHT_BUMPER)) robot.intakeDeploy();
-//            if (gamepadEx1.wasJustPressed(GamepadKeys.Button.LEFT_BUMPER)) robot.intakeRetract();
+            if (gamepadEx1.wasJustPressed(GamepadKeys.Button.RIGHT_BUMPER)) robot.intakeDeploy();
+            if (gamepadEx1.wasJustPressed(GamepadKeys.Button.LEFT_BUMPER)) robot.intakeRetract();
 //            if (gamepadEx1.wasJustPressed(GamepadKeys.Button.B)) robot.intakeRelease();
+            if (gamepadEx1.wasJustPressed(GamepadKeys.Button.B)) robot.armServo.setPosition(ErasmusRobot.ARM_SERVO_POSITION);
             if (gamepadEx1.wasJustPressed(GamepadKeys.Button.Y)) robot.resetLiftArm();
 //            if (gamepadEx1.wasJustPressed(GamepadKeys.Button.BACK)) robot.toSubmersible();
             if (gamepad1.right_trigger>0.2) robot.tweakArm((int)(gamepad1.right_trigger*10)) ;
             if (gamepad1.left_trigger>0.2) robot.tweakArm((int)(-gamepad1.left_trigger*10)) ;
-
+            
 //            if (Math.abs(gamepad2.left_stick_y) > 0.1 ) {
 //                robot.tweakLift((int)(-gamepad2.left_stick_y*10)) ;}
 //            if (Math.abs(gamepad2.right_stick_y) > 0.1 ) {
@@ -88,6 +89,7 @@ public class CompetitionExTeleOp extends LinearOpMode {
 //            if (gamepad1.right_trigger>0.5) robot.raiseArm();
 //            if (gamepad1.left_trigger>0.5) robot.lowerArm();
 
+            telemetry.addData("Axon" , ErasmusRobot.ARM_SERVO_POSITION) ;
             telemetry.addData("Current" , robot.liftMotor.getCurrent(CurrentUnit.AMPS)) ;
             telemetry.addData("Lift Target" , robot.liftMotor.getTargetPosition()) ;
             telemetry.addData("Lift Ticks" , robot.liftMotor.getCurrentPosition()) ;
