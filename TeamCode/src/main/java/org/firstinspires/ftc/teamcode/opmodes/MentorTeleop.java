@@ -62,12 +62,12 @@ public class MentorTeleop extends LinearOpMode {
             if (gamepadEx1.wasJustPressed(GamepadKeys.Button.DPAD_RIGHT)) currentAction = robot.goToClipPosition();
             //if (gamepadEx1.wasJustPressed(GamepadKeys.Button.DPAD_LEFT)) robot.clipReset();
             if (gamepadEx1.wasJustPressed(GamepadKeys.Button.X)) robot.toggleGripper();
-            if (gamepadEx1.wasJustPressed(GamepadKeys.Button.RIGHT_BUMPER)) robot.intakeDeploy();
-            if (gamepadEx1.wasJustPressed(GamepadKeys.Button.LEFT_BUMPER)) robot.intakeRetract();
-//            if (gamepadEx1.wasJustPressed(GamepadKeys.Button.B)) robot.intakeRelease();
-            if (gamepadEx1.wasJustPressed(GamepadKeys.Button.B)) robot.armServo.setPosition(ErasmusRobot.ARM_SERVO_POSITION);
-            if (gamepadEx1.wasJustPressed(GamepadKeys.Button.Y)) robot.resetLiftArm();
-//            if (gamepadEx1.wasJustPressed(GamepadKeys.Button.BACK)) robot.toSubmersible();
+            if (gamepadEx1.wasJustPressed(GamepadKeys.Button.RIGHT_BUMPER)) currentAction = robot.goToIntakeDeploy();
+            if (gamepadEx1.wasJustPressed(GamepadKeys.Button.LEFT_BUMPER)) currentAction = robot.goToIntakeRetract();
+            if (gamepadEx1.wasJustPressed(GamepadKeys.Button.B)) currentAction = robot.goToIntakeRelease();
+//            if (gamepadEx1.wasJustPressed(GamepadKeys.Button.B)) robot.armServo.setPosition(ErasmusRobot.ARM_SERVO_POSITION);
+            //if (gamepadEx1.wasJustPressed(GamepadKeys.Button.Y)) {}
+            if (gamepadEx1.wasJustPressed(GamepadKeys.Button.BACK)) robot.armServo.setPosition(ErasmusRobot.ARM_SERVO_POSITION);
             if (gamepad1.right_trigger>0.2) robot.tweakArm((int)(gamepad1.right_trigger*10)) ;
             if (gamepad1.left_trigger>0.2) robot.tweakArm((int)(-gamepad1.left_trigger*10)) ;
             

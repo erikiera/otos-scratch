@@ -9,8 +9,6 @@ import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 
 import org.firstinspires.ftc.teamcode.ErasmusRobot;
-import org.firstinspires.ftc.teamcode.SparkFunOTOSDrive;
-import org.firstinspires.ftc.teamcode.tuning.TuningOpModes;
 
 @Autonomous(name = "ActionTest", group = "Auto Test")
 public final class ActionTest extends LinearOpMode {
@@ -18,7 +16,7 @@ public final class ActionTest extends LinearOpMode {
     public void runOpMode() throws InterruptedException {
         ErasmusRobot robot = new ErasmusRobot(this) ;
         Pose2d beginPose = new Pose2d(0, 0, 0);
-        robot.gripperOpenState=false;
+        robot.gripperShouldItClose =false;
         robot.updateGripper();
         waitForStart();
 
@@ -29,7 +27,8 @@ public final class ActionTest extends LinearOpMode {
                         robot.goToNetPosition(),
                         robot.goToFloorPosition()))
             );
-            while (opModeIsActive()){}
 
+
+            while (opModeIsActive()){}
     }
 }

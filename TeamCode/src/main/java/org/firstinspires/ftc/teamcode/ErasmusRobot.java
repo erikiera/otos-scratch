@@ -6,7 +6,6 @@ import com.acmerobotics.dashboard.config.Config;
 import com.acmerobotics.dashboard.telemetry.TelemetryPacket;
 import com.acmerobotics.roadrunner.Action;
 import com.acmerobotics.roadrunner.SequentialAction;
-import com.acmerobotics.roadrunner.SleepAction;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
@@ -28,7 +27,7 @@ public class ErasmusRobot {
     public MecanumDrive drive ;
 
     // Setpoints =============================================
-    // Arm --------------------------------------
+    // Arm ------- DC Motor --------------------
     public static int ARM_TARGET = 0 ;
     public static int ARM_MATCH_START = 1300;
     public static int ARM_FLOOR = 10;
@@ -40,7 +39,7 @@ public class ErasmusRobot {
     public static int ARM_L1_ASCENSION = 1200;
     public static double ARM_P_COEFFICIENT = 7 ;
     public int armOffset = 0 ;
-
+    // Arm ---------- Servo ------------------------
     public static double ARM_SERVO_POSITION = 0.5 ;
     public static double ARM_SERVO_FLOOR = 0.08 ;
     public static double ARM_SERVO_NET = 0.55 ;
@@ -63,20 +62,14 @@ public class ErasmusRobot {
     public static double GRIPPER_OPEN = 0.8 ;
     public static double GRIPPER_CLOSE = 0.4 ;
     public static double GRIPPER_PAUSE_TIME = 0.5 ;
-    public boolean gripperOpenState = false ;
+    public boolean gripperShouldItClose = true ;
     // Intake-----------------------------------
     public static double INTAKE_TARGET = 0.5 ;
     public static double  INTAKE_EXTEND = .01;
     public static double INTAKE_RETRACT = .7;
     public static double INTAKE_RELEASE = .55;
-    // Actions -------------------------------
-    public Action goToNetPosition ;
-    public Action goToClipPosition ;
-    public Action goToFloorPosition ;
-    public Action payloadToClip ;
-    public Action payloadToMatchPosition ;
-
-
+    public static double INTAKE_TRANSFER = 0.2 ;
+    public static double INTAKE_BRUSH_DELAY = 1.5 ;
 
     public ErasmusRobot(OpMode newOpMode, Pose2d startPose) {
         opMode = newOpMode ;
@@ -113,22 +106,13 @@ public class ErasmusRobot {
         intakeMotor = opMode.hardwareMap.get(DcMotor.class, "intakeMotor");
         intakeMotor.setDirection(DcMotorSimple.Direction.FORWARD);
         intakeMotor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-        // Instantiate actions -----------------------------------------
-
-        goToClipPosition = new SequentialAction(
-                new GripperAction(false),
-                new LiftArmAction(LIFT_CLIP, ARM_CLIP+armOffset) ) ;
-
-        payloadToClip = new SequentialAction( // TODO: Incomplete
-                new GripperAction(false),
-                new SleepAction(1),
-                new LiftArmAction(LIFT_FLOOR, ARM_FLOOR+armOffset) ) ;
     }
 
     public ErasmusRobot(OpMode newOpMode) {
         this(newOpMode, new Pose2d(0,0,Math.toRadians(0))) ;
     }
 
+    // OpMode-facing Actions ==================================================
     public Action goToNetPosition() {
         return new SequentialAction(
                 new GripperAction(false),
@@ -147,53 +131,34 @@ public class ErasmusRobot {
 //                new LiftArmAction(LIFT_CLIP, ARM_CLIP + armOffset));
                 new LiftArmAction(LIFT_CLIP, ARM_SERVO_CLIP));
     }
+    public Action goToIntakeTransfer() {
+        return new SequentialAction(
+                new IntakeAction(INTAKE_TRANSFER, 0),
+                new WaitTime(2),
+                new LiftArmAction(LIFT_INTAKE, ARM_SERVO_INTAKE)
+        ) ;
+    }
+    public Action goToIntakeDeploy() {
+        return new IntakeAction(INTAKE_EXTEND, 1) ;
+    }
+    public Action goToIntakeRetract() {
+        return new IntakeAction(INTAKE_RETRACT, 0) ;
+    }
+    public Action goToIntakeRelease() {
+        return new IntakeAction(INTAKE_RELEASE, -1) ;
+    }
 
-    public void intakeDeploy(){
-        intakeMotor.setPower(1);
-        intakeServo.setPosition(INTAKE_EXTEND);
-    }
-    public void intakeRetract(){
-        intakeMotor.setPower(0);
-        intakeServo.setPosition(INTAKE_RETRACT);
-    }
-    public void intakeRelease(){
-        intakeServo.setPosition(INTAKE_RELEASE);
-        intakeMotor.setPower(-1);
-    }
-
-    public void setPayloadAll(int newLiftPosition, int newArmPosition, boolean newGripperOpen) {
+    // Basic motions (not Actions) ============================================
+    public void setPayloadAll(int newLiftPosition, int newArmPosition, boolean newGripperClose) {
         liftMotor.setTargetPosition(newLiftPosition);
         armMotor.setTargetPosition(newArmPosition);
-        gripperOpenState = newGripperOpen ;
+        gripperShouldItClose = newGripperClose ;
         updateGripper() ;
     }
-
-    public void resetLiftArm() {
-        armMotor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        armMotor.setTargetPosition(0);
-        armMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-        armMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-        liftMotor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        liftMotor.setTargetPosition(0);
-        liftMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-        liftMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-        liftMotor.setTargetPositionTolerance(50);
-    }
-
-    public void liftToPosition(int targetTicks) {
-        if (targetTicks > 0) {
-            liftMotor.setTargetPosition(targetTicks);
-            liftMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-            liftMotor.setPower(.9);
-            liftMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-        }
-    }
-
 
     public void liftMotorResting() {
         if (liftMotor.getTargetPosition()<1 &&
                 liftMotor.isOverCurrent() &&
-                //liftMotor.getCurrentPosition()<30 &&
                 Math.abs(liftMotor.getVelocity()) < 10) {
             liftMotor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
             liftMotor.setTargetPosition(0);
@@ -203,28 +168,28 @@ public class ErasmusRobot {
         else liftMotor.setPower(0.9);
     }
 
-
     // Try to always use this to open and close the gripper because it helps with logic elsewhere
     public void updateGripper() {
-        if (gripperOpenState) gripperServo.setPosition(GRIPPER_OPEN);
-        else gripperServo.setPosition(GRIPPER_CLOSE);
+        if (gripperShouldItClose) gripperServo.setPosition(GRIPPER_CLOSE);
+        else gripperServo.setPosition(GRIPPER_OPEN);
     }
-
+    public void openGripper() {
+        gripperShouldItClose = false ;
+        updateGripper() ;
+    }
+    public void closeGripper() {
+        gripperShouldItClose = true ;
+        updateGripper() ;
+    }
     public void toggleGripper() {
-        gripperOpenState =!gripperOpenState ;
+        gripperShouldItClose =! gripperShouldItClose;
         updateGripper() ;
     }
 
-//    public void raiseArm(){
-//        armMotor.setTargetPosition(armMotor.getCurrentPosition()+20);
-//    }
-//    public void lowerArm(){
-//        armMotor.setTargetPosition(armMotor.getCurrentPosition()-20);
-//    }
     public void tweakLift(int liftAmount) {liftMotor.setTargetPosition(liftMotor.getTargetPosition()+liftAmount) ;  }
     public void tweakArm(int armAmount) {armMotor.setTargetPosition(armMotor.getTargetPosition()+armAmount) ;  }
 
-    // ACTIONS =========================================================
+    // Low-Level ACTIONS ======= Use these to build specific actions ===============
     private class LiftArmAction implements Action {
         private boolean started = false ;
         int liftTarget ;
@@ -261,20 +226,61 @@ public class ErasmusRobot {
     }
 
     private class GripperAction implements Action {
-        boolean gripperToOpen;
+        boolean started = false ;
+        boolean gripperToClose;
         double startTime ;
         boolean alreadyThere = false ;
-        public GripperAction(boolean newGripperToOpen) {
-            startTime = opMode.getRuntime() ;
-            gripperToOpen = newGripperToOpen;
-            alreadyThere = (gripperToOpen==gripperOpenState) ;
+        public GripperAction(boolean newGripperToClose) {
+            gripperToClose = newGripperToClose;
         }
         @Override
         public boolean run(@NonNull TelemetryPacket telemetryPacket) {
-            gripperOpenState = gripperToOpen ;
+            if (!started) {
+                started = true ;
+                startTime = opMode.getRuntime() ;
+                alreadyThere = (gripperToClose== gripperShouldItClose) ;
+            }
+
+            gripperShouldItClose = gripperToClose ;
             updateGripper();
             if (!alreadyThere && opMode.getRuntime() < startTime+GRIPPER_PAUSE_TIME) return true ;
             else return false ;
+        }
+    }
+
+    private class IntakeAction implements Action {
+        double startTime ;
+        double slidePosition ;
+        double brushSpeed ;
+        public IntakeAction(double newSlidePosition, double newBrushSpeed) {
+            startTime = opMode.getRuntime() ;
+            slidePosition = newSlidePosition ;
+            brushSpeed = newBrushSpeed ;
+        }
+        @Override
+        public boolean run(@NonNull TelemetryPacket telemetryPacket) {
+            if (opMode.getRuntime()>startTime+INTAKE_BRUSH_DELAY) { // Pause a little before starting/stopping the brush
+                intakeMotor.setPower(brushSpeed) ;
+                return false ;
+            }
+            else {
+                intakeServo.setPosition(slidePosition);
+            }
+            return true ;
+        }
+    }
+
+    private class WaitTime implements Action {
+        double startTime ;
+        double waitSeconds = 0 ;
+        public WaitTime(double newWaitSeconds) {
+            waitSeconds = newWaitSeconds ;
+            startTime = opMode.getRuntime() ;
+        }
+        @Override
+        public boolean run(@NonNull TelemetryPacket telemetryPacket) {
+            if (opMode.getRuntime() > startTime+waitSeconds) return false ;
+            return true ;
         }
     }
 }
