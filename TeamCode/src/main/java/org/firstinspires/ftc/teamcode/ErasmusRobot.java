@@ -12,6 +12,8 @@ import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.Servo;
 import org.firstinspires.ftc.robotcore.external.navigation.CurrentUnit;
+import org.firstinspires.ftc.teamcode.roadrunner.MecanumDrive;
+
 import com.acmerobotics.roadrunner.Pose2d;
 
 @Config
@@ -43,7 +45,7 @@ public class ErasmusRobot {
     public static double ARM_SERVO_POSITION = 0.5 ;
     public static double ARM_SERVO_FLOOR = 0.08 ;
     public static double ARM_SERVO_NET = 0.55 ;
-    public static double ARM_SERVO_CLIP = 0.6 ;
+    public static double ARM_SERVO_CLIP = 0.57 ;
     public static double ARM_SERVO_MATCHSTART = 0.6 ;
     public static double ARM_SERVO_INTAKE = 0.7 ;
     // Lift ---------------------------------------
@@ -51,7 +53,7 @@ public class ErasmusRobot {
     public static int LIFT_START = 0 ; //not used
     public static int LIFT_FLOOR = 0;
     public static int LIFT_NET = 2800 ;   // 43 in high
-    public static int LIFT_CLIP = 2900 ;  // 26 in high
+    public static int LIFT_CLIP = 500 ;  // 26 in high
     public static int LIFT_CLIPPED = 900;
     public static int LIFT_INTAKE = 500 ;
     public static int LIFT_SUBMERSIBLE = 425 ;
@@ -115,19 +117,19 @@ public class ErasmusRobot {
     // OpMode-facing Actions ==================================================
     public Action goToNetPosition() {
         return new SequentialAction(
-                new GripperAction(false),
+                new GripperAction(true),
 //                new LiftArmAction(LIFT_NET, ARM_NET+armOffset) ) ;
                 new LiftArmAction(LIFT_NET, ARM_SERVO_NET) ) ;
     }
     public Action goToFloorPosition() {
         return new SequentialAction(
-                new GripperAction(true),
+                new GripperAction(false),
 //                new LiftArmAction(LIFT_FLOOR, ARM_FLOOR + armOffset));
                 new LiftArmAction(LIFT_FLOOR, ARM_SERVO_FLOOR));
     }
     public Action goToClipPosition() {
         return new SequentialAction(
-                new GripperAction(false),
+                new GripperAction(true),
 //                new LiftArmAction(LIFT_CLIP, ARM_CLIP + armOffset));
                 new LiftArmAction(LIFT_CLIP, ARM_SERVO_CLIP));
     }
