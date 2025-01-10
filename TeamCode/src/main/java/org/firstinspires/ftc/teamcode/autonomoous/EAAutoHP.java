@@ -44,15 +44,16 @@ public final class EAAutoHP extends LinearOpMode {
                         ),
                         // ---------- Push the 3 samples into the observation zone -------------
                         robot.drive.actionBuilder(new Pose2d(-35, 22, Math.toRadians(-90)))
+                                // Retrieve sample 1 -----------------------------------
                                 .splineToSplineHeading(new Pose2d(-48, 12, Math.toRadians(-90)), Math.toRadians(180))
                                 .setReversed(true)
-                                .splineToSplineHeading(new Pose2d(-48, 56, Math.toRadians(-90)), Math.toRadians(-90))
+                                .splineToSplineHeading(new Pose2d(-48, 56, Math.toRadians(-90)), Math.toRadians(90))
                                 // Retrieve sample 2 -----------------------------------
                                 .setReversed(false)
                                 .splineTo(new Vector2d(-50, 22), Math.toRadians(-90))
                                 .splineToSplineHeading(new Pose2d(-58, 12, Math.toRadians(-90)), Math.toRadians(180))
                                 .setReversed(true)
-                                .splineToSplineHeading(new Pose2d(-58, 56, Math.toRadians(-90)), Math.toRadians(-90))
+                                .splineToSplineHeading(new Pose2d(-58, 56, Math.toRadians(-90)), Math.toRadians(90))
                                 // Retrieve sample 3 -----------------------------------
                                 .setReversed(false)
                                 .splineTo(new Vector2d(-60, 22), Math.toRadians(-90))

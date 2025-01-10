@@ -46,19 +46,19 @@ public final class EAAutoHPShort extends LinearOpMode {
                         robot.drive.actionBuilder(new Pose2d(-35, 22, Math.toRadians(-90)))
                                 .splineToSplineHeading(new Pose2d(-48, 12, Math.toRadians(-90)), Math.toRadians(180))
                                 .setReversed(true)
-                                .splineToSplineHeading(new Pose2d(-48, 56, Math.toRadians(-90)), Math.toRadians(-90))
+                                .splineToSplineHeading(new Pose2d(-48, 56, Math.toRadians(-90)), Math.toRadians(90))  // Push sample 1
                                 // Retrieve sample 2 -----------------------------------
                                 .setReversed(false)
                                 .splineTo(new Vector2d(-50, 22), Math.toRadians(-90))
                                 .splineToSplineHeading(new Pose2d(-58, 12, Math.toRadians(-90)), Math.toRadians(180))
                                 .setReversed(true)
-                                .splineToSplineHeading(new Pose2d(-58, 56, Math.toRadians(-90)), Math.toRadians(-90))
+                                .splineToSplineHeading(new Pose2d(-58, 56, Math.toRadians(-90)), Math.toRadians(90))  // Push sample 2
                                 // Go to staging area
                                 .setReversed(false)
                                 .splineToSplineHeading(new Pose2d(-36, 46, Math.toRadians(-135)), Math.toRadians(0))
                                 .splineToSplineHeading(new Pose2d(-25, 60, Math.toRadians(180)), Math.toRadians(90))
                                 .build(),
-                        // -------------------- Clip the 3 specimens -------------------------
+                        // -------------------- Clip the 2 specimens -------------------------
                         // ------ Specimen 1 ------
                         new ParallelAction(
                                 robot.drive.actionBuilder(new Pose2d(-25, 60, Math.toRadians(180)))
